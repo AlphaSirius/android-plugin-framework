@@ -1,12 +1,11 @@
 package com.example.pluginsystem.plugins.core;
 
-import android.content.Intent;
-
 import androidx.annotation.NonNull;
 
 import com.example.pluginsystem.PluginObjectFactory;
 import com.example.pluginsystem.plugins.PluginInterests;
 import com.example.pluginsystem.plugins.PluginManagerHandler;
+import com.example.pluginsystem.plugins.PluginManagerHandlerThread;
 
 public class AndroidPermissionPlugin extends BasePlugin {
 

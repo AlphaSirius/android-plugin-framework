@@ -1,6 +1,5 @@
 package com.example.pluginsystem.plugins;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
@@ -8,9 +7,7 @@ import android.os.Message;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
-import androidx.arch.core.util.Function;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.OnLifecycleEvent;
@@ -24,7 +21,8 @@ import com.example.pluginsystem.utils.Predicate;
 import com.example.pluginsystem.utils.SafeMapper;
 
 import java.lang.ref.WeakReference;
-import java.util.Map;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 public class PluginManager implements IPluginHost {
 
@@ -32,13 +30,13 @@ public class PluginManager implements IPluginHost {
     private final SafeMapper<String, IPlugin> pluginSafeMapper;
     private final ExecutorHelper executorHelper;
     private final NonConfigurationInstances nonConfigurationInstances;
-    private final PluginManagerHandler pluginManagerHandler;
+    private final PluginManagerHandlerThread pluginManagerHandlerThread;
     private final Runnable requestFinish = () -> finishImmediately();
     private WeakReference<Lifecycle> lifecycleWeakReference;
     private WeakReference<BaseActivity> baseActivityWeakReference;
     private volatile boolean isValid = false;
 
-    public static final String PLUGIN_MANAGER_HANDLER_NAME = "pluginManagerHandler";
+    public static final String PLUGIN_MANAGER_HANDLER_NAME = "pluginManagerHandlerThread";
 
 
     public PluginManager(@NonNull PluginObjectFactory pluginObjectFactory) {
@@ -47,7 +45,7 @@ public class PluginManager implements IPluginHost {
         this.pluginSafeMapper = pluginObjectFactory.createSafeMapper();
         this.executorHelper = pluginObjectFactory.get(ExecutorHelper.class);
         this.nonConfigurationInstances = pluginObjectFactory.geNonConfigurationInstances();
-        this.pluginManagerHandler = pluginObjectFactory.getPluginManagerHandler(String.format("%s_%s", PLUGIN_MANAGER_HANDLER_NAME, pluginObjectFactory.getUUID()), this);
+        this.pluginManagerHandlerThread = pluginObjectFactory.getPluginManagerHandler(String.format("%s_%s", PLUGIN_MANAGER_HANDLER_NAME, pluginObjectFactory.getUUID()), this);
     }
 
     public boolean isInitialized() {
@@ -138,7 +136,7 @@ public class PluginManager implements IPluginHost {
     public void onClear() {
 
         broadcastNotification(plugin -> true, plugin -> plugin.onClear());
-        pluginManagerHandler.getHandler().getLooper().quitSafely();
+        pluginManagerHandlerThread.getHandler().getLooper().quitSafely();
     }
 
 
@@ -217,10 +215,10 @@ public class PluginManager implements IPluginHost {
 
         Predicate<IPlugin> predicate = pluginInMap ->
                 plugin.getStartRequestId() < plugin.getLastRequestId()
-                && (pluginInMap.isRequestIdInteresting(plugin.getStartRequestId())
+                        && (pluginInMap.isRequestIdInteresting(plugin.getStartRequestId())
                         || pluginInMap.isRequestIdInteresting(plugin.getLastRequestId()));
 
-        this.pluginSafeMapper.iterateWithPredicate(predicate, p ->{
+        this.pluginSafeMapper.iterateWithPredicate(predicate, p -> {
 
             throw new RuntimeException(String.format("Plugin [%s] requestId ranges overlapped by [%s]", plugin.toString(), p.toString()));
         });
@@ -299,26 +297,22 @@ public class PluginManager implements IPluginHost {
     @Override
     public void pluginManagerHandler(@NonNull Consumer<PluginManagerHandler> consumer) {
 
-        this.assertUtility.ifPresent(this.pluginManagerHandler, pmh -> {
+        this.assertUtility.ifPresent(this.pluginManagerHandlerThread, pmht -> {
 
-            consumer.accept(pmh);
+            this.assertUtility.ifPresent(pmht.getHandler(), pmh -> {
+                consumer.accept(pmh);
+            });
         });
     }
 
     @Override
     public boolean handleMessage(@NonNull final Message message) {
 
-        this.assertUtility.ifPresent(message.getCallback(), runnable -> {
+        this.assertUtility.ifPresent(message.obj, object -> {
 
-            this.assertUtility.safeCast(runnable, PluginHostRunnable.class, pluginHostRunnable -> {
+            this.assertUtility.tryCast(object, obj -> {
 
-                this.assertUtility.ifTrue(this.isValid, bool -> {
-
-                    this.executorHelper.getMainThreadHandler().post(() -> {
-
-                        pluginHostRunnable.run(this);
-                    });
-                });
+                ((Consumer<IPluginHost>) obj).accept(this);
             });
         });
 

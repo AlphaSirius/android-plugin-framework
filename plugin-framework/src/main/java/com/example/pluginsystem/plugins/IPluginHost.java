@@ -1,6 +1,5 @@
 package com.example.pluginsystem.plugins;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,7 +8,6 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
-import androidx.arch.core.util.Function;
 import androidx.core.util.Consumer;
 import androidx.lifecycle.LifecycleObserver;
 

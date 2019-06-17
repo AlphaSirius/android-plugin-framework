@@ -56,6 +56,16 @@ public class AssertUtility implements ISingletonObject {
         ifTrue(object.getClass().isAssignableFrom(uClass), bool -> consumer.accept((U) object));
     }
 
+    public <T,U> void tryCast(T object, Consumer<T> consumer) {
+
+        try {
+
+            consumer.accept(object);
+        } catch (Exception e) {
+
+        }
+    }
+
     public <T> void throwIfNull(@Nullable T object) {
 
         ifNotPresent(object, () -> {

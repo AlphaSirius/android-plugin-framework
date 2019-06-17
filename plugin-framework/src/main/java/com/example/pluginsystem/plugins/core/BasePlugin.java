@@ -1,20 +1,16 @@
 package com.example.pluginsystem.plugins.core;
 
-import android.content.Context;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
-import androidx.arch.core.util.Function;
 import androidx.core.util.Consumer;
 
 import com.example.pluginsystem.PluginObjectFactory;
 import com.example.pluginsystem.plugins.IPlugin;
 import com.example.pluginsystem.plugins.IPluginHost;
-import com.example.pluginsystem.plugins.PluginHostRunnable;
 import com.example.pluginsystem.plugins.PluginInterests;
 import com.example.pluginsystem.plugins.PluginManagerHandler;
 import com.example.pluginsystem.utils.AssertUtility;
-import com.example.pluginsystem.utils.Predicate;
 
 
 public class BasePlugin implements IPlugin {
@@ -131,9 +127,7 @@ public class BasePlugin implements IPlugin {
 
         this.assertUtility.ifPresent(this.pluginManagerHandler, pmh ->{
 
-            PluginHostRunnable pluginHostRunnable = this.pluginObjectFactory.createPluginHostRunnable();
-            pluginHostRunnable.setUp(consumer);
-            pmh.getHandler().post(pluginHostRunnable);
+            pmh.sendMessage(pmh.obtainMessage(consumer));
         });
     }
 }

@@ -21,7 +21,7 @@ public class MainActivityViewModel extends ViewModel {
 
           pluginHost.runInactivityContext(baseActivity -> {
 
-              navigator.startActivity(new Intent(baseActivity, MainActivity.class), null);
+              navigator.startActivity(new Intent(baseActivity, Main2Activity.class), null);
           });
        });
     }

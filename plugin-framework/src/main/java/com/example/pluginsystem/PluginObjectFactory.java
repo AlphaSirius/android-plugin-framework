@@ -7,16 +7,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 
-import com.example.pluginsystem.plugins.PluginHostRunnable;
-import com.example.pluginsystem.plugins.PluginManager;
 import com.example.pluginsystem.plugins.PluginManagerFactory;
 import com.example.pluginsystem.plugins.PluginManagerHandler;
+import com.example.pluginsystem.plugins.PluginManagerHandlerThread;
 import com.example.pluginsystem.plugins.PluginManagerProvider;
 import com.example.pluginsystem.plugins.core.AndroidPermissionPlugin;
 import com.example.pluginsystem.plugins.core.Navigator;
-import com.example.pluginsystem.utils.NonConfigurationInstances;
 import com.example.pluginsystem.utils.AssertUtility;
 import com.example.pluginsystem.utils.ExecutorHelper;
+import com.example.pluginsystem.utils.NonConfigurationInstances;
 import com.example.pluginsystem.utils.SafeMapper;
 
 import java.util.HashMap;
@@ -108,16 +107,11 @@ public class PluginObjectFactory {
         return new NonConfigurationInstances(get(AssertUtility.class), createSafeMapper());
     }
 
-    public PluginHostRunnable createPluginHostRunnable() {
+    public PluginManagerHandlerThread getPluginManagerHandler(@NonNull String name, @NonNull Handler.Callback callback) {
 
-        return new PluginHostRunnable();
-    }
-
-    public PluginManagerHandler getPluginManagerHandler(@NonNull String name, @NonNull Handler.Callback callback) {
-
-        PluginManagerHandler pluginManagerHandler = new PluginManagerHandler(name, callback);
-        pluginManagerHandler.start();
-        return pluginManagerHandler;
+        PluginManagerHandlerThread pluginManagerHandlerThread = new PluginManagerHandlerThread(name, callback);
+        pluginManagerHandlerThread.start();
+        return pluginManagerHandlerThread;
     }
 
     public String getUUID() {

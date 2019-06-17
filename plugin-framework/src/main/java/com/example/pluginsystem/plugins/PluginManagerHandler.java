@@ -1,30 +1,32 @@
 package com.example.pluginsystem.plugins;
 
 import android.os.Handler;
-import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Consumer;
 
-public class PluginManagerHandler extends HandlerThread {
+public class PluginManagerHandler extends Handler {
 
-    private Handler handler;
-    public PluginManagerHandler(@NonNull String name, @NonNull Handler.Callback callback) {
-        super(name);
+    public static final int EXECUTE_RUNNABLE = 1;
+    private final Handler.Callback callback;
+
+
+    public PluginManagerHandler(@NonNull Looper looper, @NonNull Handler.Callback callback) {
+
+        super(looper);
+        this.callback = callback;
     }
 
-    public Handler getHandler(){
+    public Message obtainMessage(@NonNull Consumer<IPluginHost> consumer) {
 
-        if(this.handler == null) {
+        return obtainMessage(EXECUTE_RUNNABLE, consumer);
+    }
 
-            synchronized (this) {
+    @Override
+    public void handleMessage(Message msg) {
 
-                if(this.handler == null) {
-
-                    this.handler = new Handler(getLooper());
-                }
-            }
-
-        }
-        return this.handler;
+        callback.handleMessage(msg);
     }
 }

@@ -6,12 +6,11 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
-import androidx.core.util.Consumer;
 
 import com.example.pluginsystem.PluginObjectFactory;
-import com.example.pluginsystem.plugins.IPluginHost;
 import com.example.pluginsystem.plugins.PluginInterests;
 import com.example.pluginsystem.plugins.PluginManagerHandler;
+import com.example.pluginsystem.plugins.PluginManagerHandlerThread;
 
 
 public class Navigator extends BasePlugin {
