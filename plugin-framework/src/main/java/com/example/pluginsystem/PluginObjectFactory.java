@@ -7,10 +7,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 
-import com.example.pluginsystem.plugins.PluginManagerFactory;
+import com.example.pluginsystem.plugins.PluginManager;
 import com.example.pluginsystem.plugins.PluginManagerHandler;
 import com.example.pluginsystem.plugins.PluginManagerHandlerThread;
-import com.example.pluginsystem.plugins.PluginManagerProvider;
 import com.example.pluginsystem.plugins.core.AndroidPermissionPlugin;
 import com.example.pluginsystem.plugins.core.Navigator;
 import com.example.pluginsystem.utils.AssertUtility;
@@ -35,7 +34,6 @@ public class PluginObjectFactory {
     private void populateSingletons() {
 
         pluginObjectFactoryCache.add(new AssertUtility());
-        pluginObjectFactoryCache.add( new PluginManagerProvider(new PluginManagerFactory(this), this));
         pluginObjectFactoryCache.add(new ExecutorHelper(new Handler(Looper.getMainLooper())));
     }
 
@@ -127,5 +125,10 @@ public class PluginObjectFactory {
     public Navigator createNavigatorPlugin(@NonNull PluginManagerHandler pluginManagerHandler) {
 
         return new Navigator(pluginManagerHandler, this);
+    }
+
+    public PluginManager createPluginManager() {
+
+        return new PluginManager(this);
     }
 }

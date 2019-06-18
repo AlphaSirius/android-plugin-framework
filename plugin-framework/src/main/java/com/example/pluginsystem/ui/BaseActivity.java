@@ -7,48 +7,38 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.util.Consumer;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.example.pluginsystem.PluginObjectFactory;
-import com.example.pluginsystem.R;
-import com.example.pluginsystem.plugins.IPluginManagerStore;
 import com.example.pluginsystem.plugins.IPluginOwner;
 import com.example.pluginsystem.plugins.PluginManager;
-import com.example.pluginsystem.plugins.PluginManagerProvider;
-import com.example.pluginsystem.plugins.core.AndroidPermissionPlugin;
 import com.example.pluginsystem.utils.AssertUtility;
 
 
-public class BaseActivity extends AppCompatActivity implements IPluginOwner, IPluginManagerStore {
+public class BaseActivity extends AppCompatActivity implements IPluginOwner {
 
-    public static final String BASE_ACTIVITY_SIGNATURE_KEY = "32e67ae6-92f4-4a47-a377-019b35fc0581";
     private final AssertUtility assertUtility;
     private PluginManager pluginManager;
     private final PluginObjectFactory pluginObjectFactory;
-    private final PluginManagerProvider pluginManagerProvider;
-    private Bundle savedInstanceState;
 
 
     public BaseActivity() {
 
         this.pluginObjectFactory = PluginObjectFactory.getPluginObjectFactory();
         this.assertUtility = pluginObjectFactory.get(AssertUtility.class);
-        this.pluginManagerProvider = pluginObjectFactory.get(PluginManagerProvider.class);
     }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.savedInstanceState = savedInstanceState;
-        this.pluginManagerProvider.getPluginManager(this, pm -> {
+        BaseViewModel baseViewModel = ViewModelProviders.of(this).get(BaseViewModel.class);
+        this.pluginManager = baseViewModel.getPluginManager(this.pluginObjectFactory);
+        if (!this.pluginManager.isInitialized()) {
 
-            this.pluginManager = pm;
-            if (!pm.isInitialized()) {
-
-                addPlugins(pm);
-            }
-            pm.onAttach(getLifecycle(), this);
-        });
+            addPlugins(this.pluginManager);
+        }
+        this.pluginManager.onAttach(getLifecycle(), this);
     }
 
     protected void addPlugins(@NonNull PluginManager pluginManager) {
@@ -99,28 +89,5 @@ public class BaseActivity extends AppCompatActivity implements IPluginOwner, IPl
     public void onBackPressed() {
         this.pluginManager.onBackpressed();
         super.onBackPressed();
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle bundle) {
-
-        super.onSaveInstanceState(bundle);
-        bundle.putString(BASE_ACTIVITY_SIGNATURE_KEY, this.pluginManagerProvider.storePluginManager(this.pluginManager));
-    }
-
-    @Override
-    public void getLastSavedInstanceState(@NonNull Consumer<Bundle> consumer) {
-
-        this.assertUtility.ifPresent(this.savedInstanceState, sis -> {
-
-            consumer.accept(sis);
-        });
-    }
-
-    @NonNull
-    @Override
-    public String getSignature() {
-
-        return BASE_ACTIVITY_SIGNATURE_KEY;
     }
 }
